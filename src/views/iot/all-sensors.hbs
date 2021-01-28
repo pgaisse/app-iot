@@ -1,0 +1,67 @@
+<div class="container">
+    <div class="row mt-4">
+        <div class="col-md-6 mx-auto">
+            <div class="card">
+                <div class="card-header">
+                </div>
+                <div class="card-body">
+                    <form action="/iot/all-sensors" method="POST">
+                       <!-- <div class="form-group">
+                            <input type="text" name="server" class="form-control" placeholder="Server">
+                        </div>-->
+                        <div class="form-group">
+                            <input type="text" name="topic" class="form-control" placeholder="Topic">
+                        </div>
+                        <div class="form-group">
+                            <button type="submit" class="btn btn-primary">
+                                Buscar
+                            </button>
+                        </div>
+                    </form>
+
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row my-4" id="graf" style="display: none;">
+        <div class="col-md-4" id="columna">
+            <div class="card">
+                <div class="card-body w-100 mx-auto">
+                    <canvas id="chLine" height="200" ></canvas>
+                </div>
+            </div>
+        </div>
+        
+    </div>
+   
+    <div class="row mt-4">
+        
+    <div class="col md-4 mx-auto">
+        <div class="card">
+            <div class="card-header">
+            </div>
+            <div class="card-body">
+                <div class="form-check form-switch">
+                <input class="form-check-input" type="checkbox" id="btn-refresh" unchecked />
+                <label class="form-check-label" for="flexSwitchCheckChecked">Refrescar automáticamente</label>
+                </div>
+        <table class="table table-dark table-hover">
+            <thead><tr><th scope="col">ID</th><th scope="col">Nombre</th><th scope="col">Status</th><th scope="col">value</th><th scope="col">Topic</th><th scope="col">Descripción</th><th scope="col">Fecha</th></tr></thead>
+            <tbody id="tbody">
+            {{#each sensors}}
+            <tr id="fila">
+              <th scope="row">{{id}}</th>  <td scope="row">{{name}}</td><td>{{status}}</td><td>{{value}}</td><td>{{topic}}</td><td>{{description}}</td><td scope="row">{{date}}</td></tr>
+            </tr>
+            {{/each}}
+            </tbody>
+        </table>
+    
+
+            </div>
+        </div>
+    </div>
+
+    </div>
+
+</div>
