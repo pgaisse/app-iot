@@ -9,7 +9,7 @@ $(async function(){
         var mode= $(this).prop('checked');
        if(mode){
             fajax();
-            intervalo =setInterval(fajax, 3000);
+            intervalo =setInterval(fajax, 1000);
 
         }
         else{
