@@ -6,6 +6,7 @@ const session   =   require('express-session');
 const flash     =   require('connect-flash');
 const Chart     =   require('chart.js');
 const passport  =   require('passport');
+const moment    =   require('node-moment');
 ///////////////////////////////////hola mundo
 var     mqtt     = require('mqtt');
 const Sensor    =   require('./models/Iot');
@@ -76,24 +77,32 @@ async function mqtt_p(){
         password: 'patoch' 
     });
     await client.on('connect', async() =>{
-        await client.subscribe('#', function (err) {
+        await client.subscribe('msg1', function (err) {
     console.log('ok')
         })
+        await client.subscribe('msg2', function (err) {
+            console.log('ok')
+        })
     })
-
+//recibir y guardar datos del arduino por medio de mqtt
     client.on('message', async function (topic, message) {
             var str=message.toString();
-            date=new Date();
-            topic= str.substring(0,4);
-            const name= str.substring(4,14); 
-            const value=parseInt(str.substring(14,18));
-            const status=parseInt(str.substring(18,22))
-            const description=str.substring(22, str.length);
-            const newSensor   =   new Sensor({name, topic, value, status, description, date});
-            await newSensor.save();
-            console.log(date);
-            //console.log(newSensor);
-    })
+            var index=str.indexOf("/");
+            var largo=str.length;
+            value=str.substr(index+1,largo)
+            var status=str.substr(0,1);
+            var date=moment().format('hh:mm:ss DD/MM/YY');
+            //console.log("msg",str)
+            //console.log("value",value)
+            //console.log("status",status)
+                //console.log(moment().format('hh:mm:ss DD/MM/YY'))
+                const newSensor   =  await new Sensor({topic,status,value,date});
+                await newSensor.save();
+   
+        
+          
+            
+          })
 }
 
 mqtt_p();

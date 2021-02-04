@@ -30,3 +30,12 @@ margin-top: 580px;
 width: 100%;
 height: 300px; /* Set the fixed height of the footer here */
 }
+
+#myRange{
+  width: 90%;
+}
+
+.btn-group{
+
+  width: 100%;
+}

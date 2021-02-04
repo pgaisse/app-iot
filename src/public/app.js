@@ -3,11 +3,17 @@ var i=0, j=0;
 var topicc, sensorn;
 const Arry=[];
 const Arrx=['', '','','','','','','','',''];
+const estado=['OFF','ON'];
+
+$(document).on("change",'#myRange', function (e){
+    let res=e.target.value;
+    $('#slidelabel').text(res);
+})
 
 $(async function(){
         $('#btn-refresh').on('change',function(){
         var mode= $(this).prop('checked');
-       if(mode){
+        if(mode){
             fajax();
             intervalo =setInterval(fajax, 1000);
 
@@ -27,7 +33,8 @@ function fajax(){
             let tbody = $('tbody');
             let graf=  document.getElementById('graf').style.display="block"
             let tabla= document.getElementById('tbody')
-            sensors.forEach(sensor => {
+            sensors.sensors.forEach(sensor => {
+                var dat= new Date(sensor.date)
                 topicc=sensor.topic;
                 sensorn=sensor.name;
                 if(i==0){
@@ -36,27 +43,27 @@ function fajax(){
                 }
                
                 if(i<10){
+                    
                     Arry[i]=sensor.value;
-                    Arrx[i]=date.getHours()+ ":"+date.getMinutes()+ ":"+date.getSeconds();
-                    console.log(date.getHours())
+                    Arrx[i]=dat.getHours()+":"+dat.getMinutes()+":"+dat.getSeconds();
                     i=i+1;
                 }
                 else{                   
                     Arry[10]=sensor.value;
-                    Arrx[10]=date.getHours()+ ":"+date.getMinutes()+ ":"+date.getSeconds();
+                    Arrx[10]=dat.getHours()+":"+dat.getMinutes()+":"+dat.getSeconds();
                     Arry.shift();
                     Arrx.shift();  
                     tabla.removeChild(tabla.firstElementChild);
                 }
-                cha(sensors);
+                cha(sensors,sensor.status,dat);
                 
                 tbody.append(`
-                <tr id='trr'>
-                    <th scope="row">${sensor.id}</th>  
-                    <td scope="row">${sensor.name}</td>
-                    <td>${sensor.status}</td><td>${sensor.value}</td>
-                    <td>${sensor.topic}</td><td>${sensor.description}</td>
-                    <td scope="row">${sensor.date}</td>
+                <tr id='trr' align='center'>
+                    <th scope="row">${sensor._id}</th>  
+                    <td>${sensor.status}</td>
+                    <td>${sensor.value}</td>
+                    <td>${sensor.topic}</td>
+                    <td>${dat}</td>
                 </tr>
                 `)
             });
@@ -64,11 +71,18 @@ function fajax(){
         }
     })
 }
-function cha(sensors){
+function cha(sensors,status,dat){
     /* chart.js chart examples */
     // chart colors
     var colors = ['#007bff','#28a745','#333333','#c3e6cb','#dc3545','#6c757d'];
-
+    var mensax="";
+    if(status){
+        mensax= "estado " + estado[status];
+    }
+    else{
+        mensax= "";
+    }
+        
     /* large line chart */
     var chLine = document.getElementById("chLine");
     var chartData;
@@ -96,7 +110,7 @@ function cha(sensors){
             },
             title: {
                 display: true,
-                text: topicc+"/"+sensorn+" ("+ date.getDate()+"/"+date.getMonth()+1+"/"+date.getFullYear()+")"
+                text:"Tópico "+topicc+ ", "+ mensax+ " ("+ dat+")"
             },
             scales: {
                 xAxes: [

@@ -2,60 +2,46 @@ const router    =   require('express').Router();
 const Sensor    =   require('../models/Iot');
 const {isAuthenticated} = require('../helpers/auth');
 var params={};
+const mqtt     =   require('mqtt');
 
-router.get('/iot/all', (req, res)=>{
-    res.render('iot/all-sensors');
+router.get('/iot/all', async (req, res)=>{
+    const topicos = await Sensor.distinct("topic");
+    res.render('iot/all-sensors',{topicos: topicos});
 });
 
 
-router.get('/iot/add', isAuthenticated, (req, res)=>{
-    res.render('iot/new-sensor');
+router.get('/iot/add', isAuthenticated, async (req, res)=>{
+    const topicos = await Sensor.distinct("topic");
+    res.render('iot/new-sensor',{topicos: topicos});
 });
 
-router.get('/iot/all-sensors',isAuthenticated, (req, res)=>{
-    res.render('iot/all-sensors');
+router.get('/iot/all-sensors',isAuthenticated, async (req, res)=>{
+    const topicos = await Sensor.distinct("topic");
+    res.render('iot/all-sensors',{topicos: topicos});
 });
 
 router.post('/iot/all-sensors', isAuthenticated, async (req, res)=>{
-    const {server, topic}=req.body;
-    const errors=[];    
+    const {topic}=req.body;
+    const errors=[]; 
+    params={topic: topic};
+    if (!topic){
+        errors.push({text: 'Por favor ingrese un tópico'});
+    }   
+    const topicos = await Sensor.distinct("topic");
     if(errors.length > 0){
         res.render('iot/all-sensors',{
             errors,
-            server,
-            topic
+            topic,
+            topicos
         });
 
     }
     else{
-        
-        if(topic){
-            params={topic: topic};
-        }
-        else{
-            params={};
-        }
-        
-        console.log(topic)
-             
-        await Sensor.find(params).sort({$natural:-1}).limit(10).then(documentos => {
-        const contexto = {
-            sensors: documentos.map(documento => {
-            return {
-                name: documento.name,
-                description: documento.description,
-                id: documento.id,
-                status: documento.status,
-                topic: documento.topic,
-                date: documento.date,
-                value: documento.value
-                }   
-                
-            })
-        }
-        //console.log(contexto.sensors )
-        res.render('iot/all-sensors', { sensors: contexto.sensors }) 
-        })
+            
+        const sensors = await Sensor.find({topic}).sort({$natural:-1}).limit(10).lean()
+        const topicos = await Sensor.distinct("topic");
+        res.render('iot/all-sensors', { sensors: sensors, topicos:topicos}) 
+    
         
     
     }
@@ -66,77 +52,71 @@ router.post('/iot/all-sensors', isAuthenticated, async (req, res)=>{
 
 
 router.get('/iot', isAuthenticated, async (req, res)=>{
-   
-    res.render('iot/all-sensors');
+    const topicos = await Sensor.distinct("topic");
+    res.render('iot/all-sensors',{topicos: topicos});
 });
 
-router.post('/iot/new-sensor',isAuthenticated, async (req,res)=>{
-    console.log(req.body);
-    const {name, topic,value ,status, description}=req.body;
+router.post('/iot/new-sensor', async (req,res)=>{
+    const {topic,value}=req.body;
     const errors=[];
-    if(!name){
-        errors.push({text: 'por favor revise el nombre'});
-    }
+ 
     if(!topic){
         errors.push({text: 'por favor revise el tópico'});
     }
-    if(!status){
-        errors.push({text: 'por favor revise el status'});
-    }
-    if(!description){
-        errors.push({text: 'por favor revise la descripción'});
-    }
+
     if(!value){
-        errors.push({text: 'por favor revise la descripción'});
+        errors.push({text: 'por favor revise el valor'});
     }
+
     if(errors.length > 0){
         res.render('iot/new-sensor',{
             errors,
-            name,
-            value,
-            status,
-            description,
-            topic
-        });
+            topic,
+            value
+    });
 
     }
     else{
-        const newSensor   =   new Sensor({name, topic,value,status,description});
+        
+        async function mqtt_p(){
+            var broker='mqtt://192.168.1.83';
+        
+            var cliente = mqtt.connect(broker, {
+                username: 'pgaisse',
+                password: 'patoch' 
+            });
+
+                await cliente.on('connect', async () =>{
+                await cliente.publish(topic, value)
+            })
+        }
+        mqtt_p();
+        const topicos = await Sensor.distinct("topic");        
+        const newSensor   =   new Sensor({topic,value});
         //newNote.user = req.user.id;
-        //
-        console.log(newSensor);
         await newSensor.save();
-        req.flash('success_msg', 'Mensaje agregado satisfactoriamente');
-        res.redirect('/iot');
+        req.flash('success_msg', 'Mensaje enviado satisfactoriamente');
+        res.render('iot/new-sensor',{topicos: topicos});
     }
 });
 
 
 router.get('/iot/all-ajax', async (req, res)=>{
-    await Sensor.find(params).sort({$natural:-1}).limit(1).then(documentos => {
-        const contexto = {
-            sensors: documentos.map(documento => {
-            return {
-                name: documento.name,
-                description: documento.description,
-                id: documento.id,
-                status: documento.status,
-                topic: documento.topic,
-                date: documento.date,
-                value: documento.value
-                }   
-                
-            })
-        }
-        res.json(contexto.sensors);
-    })
-    
-    
-});
+  
+    const topicos = await Sensor.distinct("topic");
+    const sensors = await Sensor.find(params).sort({$natural:-1}).limit(1);
+
+    res.json({sensors,topicos});
+})
 
 router.get('/iot/chart', async (req, res)=>{
 
 
+})
+
+router.get('/iot/new-sensor', async (req, res)=>{
+    const topicos = await Sensor.distinct("topic");
+    res.render('iot/new-sensor',{topicos: topicos});
 })
 
 module.exports  =   router;
